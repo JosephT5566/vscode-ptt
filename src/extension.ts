@@ -124,11 +124,23 @@ async function pickFavorite (): Promise<string> {
 
 async function searchArticleByPush(boardname: string, push: number): Promise<ArticleListItem[]>
 {
-  let searchedArticles: ArticleListItem[] = await fillPushArray(boardname, push, 10);
+  let timeOutms: number = 5000;
+  let searchedArticles: ArticleListItem[] = [];
+  
+  await Promise.race([
+    fillPushArray(boardname, push, 10, searchedArticles),
+    wait(timeOutms)
+  ]);
+
   return searchedArticles;
 }
 
-async function fillPushArray(boardname: string, push: number, articleNum: number, offset: number = 0, articles: ArticleListItem[] = []): Promise<ArticleListItem[]>
+function wait(ms: number)
+{
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fillPushArray(boardname: string, push: number, articleNum: number, articles: ArticleListItem[] = [], offset: number = 0): Promise<ArticleListItem[]>
 {
   if (articles.length > articleNum)
   {
@@ -140,7 +152,7 @@ async function fillPushArray(boardname: string, push: number, articleNum: number
     let lastsn: number;
     
     articlesStore = await ptt.getArticles(boardname, offset);
-    lastsn = articlesStore.slice(-1)[0].sn;
+    lastsn = articlesStore.slice(-1)[0].sn - 1;
 
     let filteredStore = articlesStore.filter((article) =>
     {
@@ -148,7 +160,7 @@ async function fillPushArray(boardname: string, push: number, articleNum: number
       return (Number(pushNumber) >= push);
     });
     articles.push(...filteredStore);
-    return fillPushArray(boardname, push, articleNum, lastsn, articles);
+    return fillPushArray(boardname, push, articleNum, articles, lastsn);
   }
 }
 
