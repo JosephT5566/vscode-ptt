@@ -14,6 +14,7 @@ let proxyAddress;
 let ptt;
 let ctx: vscode.ExtensionContext;
 let pttProvider: PttTreeDataProvider;
+let articleCondition: ArticleCondition;
 
 export interface FavoriteBoardItem{
   bn: string;
@@ -25,6 +26,19 @@ export interface FavoriteBoardItem{
   admin: string;
   folder: boolean;
   divider: boolean;
+}
+
+export class ArticleCondition
+{
+  offset: number;
+  push: number;
+  author: string;
+  constructor(offset: number = 0, push: number = 0, author: string = null)
+  {
+    this.offset = offset;
+    this.push = push;
+    this.author = author;
+  }
 }
 
 async function intializeProxy () {
@@ -177,6 +191,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
   pttProvider = new PttTreeDataProvider(ptt, ctx);
   vscode.window.registerTreeDataProvider('pttTree', pttProvider);
+
+  articleCondition = new ArticleCondition();
 
   const provider = new ContentProvider(ptt);
   context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(ContentProvider.scheme, provider));
