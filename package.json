@@ -58,6 +58,10 @@
         "title": "以推文數搜尋"
       },
       {
+        "command": "ptt.reset-search-condition",
+        "title": "重設搜尋條件"
+      },
+      {
         "command": "ptt.refresh-article",
         "title": "重新整理文章列表",
         "icon": {
@@ -82,6 +86,10 @@
         },
         {
           "command": "ptt.favorite-board",
+          "when": "view == pttTree"
+        },
+        {
+          "command": "ptt.reset-search-condition",
           "when": "view == pttTree"
         },
         {

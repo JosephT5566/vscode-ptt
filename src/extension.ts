@@ -136,46 +136,9 @@ async function pickFavorite (): Promise<string> {
   }
 }
 
-async function searchArticleByPush(boardname: string, push: number): Promise<ArticleListItem[]>
+function setSearchCondition(type: string, criteria: string): void
 {
-  let timeOutms: number = 5000;
-  let searchedArticles: ArticleListItem[] = [];
-  
-  await Promise.race([
-    fillPushArray(boardname, push, 10, searchedArticles),
-    wait(timeOutms)
-  ]);
-
-  return searchedArticles;
-}
-
-function wait(ms: number)
-{
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-async function fillPushArray(boardname: string, push: number, articleNum: number, articles: ArticleListItem[] = [], offset: number = 0): Promise<ArticleListItem[]>
-{
-  if (articles.length > articleNum)
-  {
-    return articles;
-  }
-  else
-  {
-    let articlesStore: ArticleListItem[];
-    let lastsn: number;
-    
-    articlesStore = await ptt.getArticles(boardname, offset);
-    lastsn = articlesStore.slice(-1)[0].sn - 1;
-
-    let filteredStore = articlesStore.filter((article) =>
-    {
-      let pushNumber: string = (article.push === '爆') ? '100' : article.push;
-      return (Number(pushNumber) >= push);
-    });
-    articles.push(...filteredStore);
-    return fillPushArray(boardname, push, articleNum, articles, lastsn);
-  }
+  ptt.setSearchCondition(type, criteria);
 }
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -275,6 +238,10 @@ export async function activate(context: vscode.ExtensionContext) {
     pttProvider.refresh();
   }));
 
+  context.subscriptions.push(vscode.commands.registerCommand('ptt.reset-search-condition', async (board: Board) => {
+    ptt.resetSearchCondition();
+  }));
+
   context.subscriptions.push(vscode.commands.registerCommand('ptt.search-board-by-push', async (board: Board) => {
     let push = await vscode.window.showInputBox({
       prompt: '輸入推文數',
@@ -292,7 +259,8 @@ export async function activate(context: vscode.ExtensionContext) {
     }
 
     vscode.window.showInformationMessage('開始搜尋');
-    let pushArticles: ArticleListItem[] = await searchArticleByPush(board.boardname, Number(push));
+    setSearchCondition("push", push);
+    let pushArticles: ArticleListItem[] = await ptt.getArticles(board.boardname);
     vscode.window.showInformationMessage('完成搜尋');
 
     store.add(board.boardname, pushArticles);
