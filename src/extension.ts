@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import PTT from 'ptt-client';
-import key from 'ptt-client/dist/utils/keyboard';
+import key from 'ptt-client/dist/utils/keymap';
 
 (global as any).WebSocket = require('ws');
 
